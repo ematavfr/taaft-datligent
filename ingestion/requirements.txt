@@ -1,0 +1,7 @@
+beautifulsoup4
+requests
+deepl
+python-dotenv
+langchain-openai
+mcp
+schedule

@@ -1,0 +1,75 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: taaft-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-taaft}
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-taaft}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  dbupdater:
+    build: ./dbupdater
+    container_name: taaft-dbupdater
+    volumes:
+      - ./dbupdater:/app
+      - ./updates:/app/updates
+      - ./processed:/app/processed
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-taaft}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: python /app/updater.py
+
+  backend:
+    build: ./backend
+    container_name: taaft-backend
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-taaft}
+    ports:
+      - "8002:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    container_name: taaft-frontend
+    ports:
+      - "3002:5173"
+    environment:
+      VITE_API_URL: http://localhost:8002
+    depends_on:
+      - backend
+
+  ingest-scheduler:
+    build: ./ingestion
+    container_name: taaft-ingestor
+    environment:
+      GMAIL_USER: ${GMAIL_USER}
+      GMAIL_PASS: ${GMAIL_PASS}
+      DEEPL_API_KEY: ${DEEPL_API_KEY}
+      MODEL_NAME: ${MODEL_NAME}
+      BASE_URL: ${BASE_URL}
+      NOTION_TOKEN: ${NOTION_TOKEN}
+      NOTION_DATABASE_ID: ${NOTION_DATABASE_ID}
+      DB_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-taaft}
+    volumes:
+      - ./updates:/app/updates
+      - ./ingestion:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

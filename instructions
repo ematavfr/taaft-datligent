@@ -1,0 +1,34 @@
+Antigravity m'a aidé à gerer mes newsletters au travers d'une application web dans les projets Medium (dans /Users/adminmac/medium-datligent) et Selfdaily (dans /Users/adminmac/selfdaily-datligent) 
+
+Je souhaite une application de même nature pour la newsletter taaft (TAAFT - There's An AI For That) projet dont fait l'objet ce repertoire.
+
+La newsletter taaft comme son nom l'indique regroupe des outils, applis ou autres objets IA couvrant des besoins divers.
+
+Cette newsletter est composée de rubriques suivants:
+
+- Breaking News
+- Coming in Hot
+- Today’s Spotlight et/ou Today’s Sponsor
+- AI Finds
+- Notable AIs
+- Open Source Finds
+- Prompt of the Day  
+
+Chaque rubrique regroupe une liste d'objets chacun defini comme suit:
+- titre d'objet (url d'accès à cet objet)
+- description de l'objet (qui sera traduit en français)
+
+Une exception sera faite pour l'objet prompt de la rubrique prompt of the day. 
+
+Sa strucuture est definie comme suit:
+ 
+- titre du prompt
+- indicatif 'click here' permettant l'accès au prompt au format Notion.
+- En encadré une description du prompt (qui sera traduit en français)
+
+Antigravity va integrer une mise à jour d'une base notion TAAFT prompts avec un schema qu'il proposera. Antigravity utilisera une integration Notion ayant l'ID taaft-prompt et un secret enregistré dans vault.
+
+Le fichier prompt-of-the-day.png donne une presentation de la rubrique prompt of the day vu dans le mail.
+
+
+ 

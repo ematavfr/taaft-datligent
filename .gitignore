@@ -1,0 +1,16 @@
+.env
+.DS_Store
+.venv/
+__pycache__/
+node_modules/
+.next/
+processed/
+updates/
+*.pyc
+*.log
+.gemini/
+.claude/
+creds-notion
+schema-base-notion
+observations
+prompt-of-the-day.png
