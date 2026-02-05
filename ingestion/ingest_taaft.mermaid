@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant S as ingest_taaft.py
+    participant G as Gmail API
+    participant L as LLM (qwen3)
+    participant N as Notion API
+    participant U as updates/ (SQL)
+
+    S->>G: Search for TAAFT Newsletter (ON target_date)
+    G-->>S: Return matching emails
+    S->>S: Parse HTML sections (Today's Spotlight, etc.)
+    loop For each tool/item
+        S->>L: Request French translation + technical tags
+        L-->>S: Return JSON metadata
+        alt if item_type is 'prompt'
+            S->>N: Sync prompt and metadata to Notion DB
+        end
+    end
+    S->>U: Generate and save .sql file
+// [MermaidChart: 3cf83bb0-5265-47f4-a63a-2899487295ac]
