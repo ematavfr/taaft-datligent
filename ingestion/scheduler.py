@@ -1,36 +1,52 @@
-import schedule
-import time
-import datetime
 import asyncio
 import os
-import sys
+
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+from loguru import logger
+
 from ingest_taaft import main as run_taaft_ingestion
 
-# Configuration
 SCHEDULE_TIME = os.environ.get("SCHEDULE_TIME", "08:30")
-# Optional flag to run ingestion immediately on startup
 RUN_ON_STARTUP = os.environ.get("RUN_ON_STARTUP", "true").lower() == "true"
 
-def job():
-    print(f"[{datetime.datetime.now()}] Starting scheduled TAAFT ingestion...")
+
+async def job():
+    logger.info("Starting scheduled TAAFT ingestion...")
     try:
-        asyncio.run(run_taaft_ingestion())
-        print(f"[{datetime.datetime.now()}] Scheduled TAAFT ingestion completed successfully.")
+        await run_taaft_ingestion()
+        logger.info("Scheduled TAAFT ingestion completed")
     except Exception as e:
-        print(f"[{datetime.datetime.now()}] Error during scheduled ingestion: {e}")
+        logger.error(f"Scheduled ingestion failed: {e}")
 
-def main():
-    print(f"Starting TAAFT Ingestion Scheduler. Frequency: Daily at {SCHEDULE_TIME}")
-    
+
+async def main():
+    hour, minute = SCHEDULE_TIME.split(":")
+    logger.info(f"TAAFT Scheduler starting — daily at {SCHEDULE_TIME} UTC")
+
     if RUN_ON_STARTUP:
-        print("Running initial ingestion on startup...")
-        job()
+        logger.info("Running ingestion on startup...")
+        await job()
 
-    schedule.every().day.at(SCHEDULE_TIME).do(job)
+    scheduler = AsyncIOScheduler(timezone="UTC")
+    scheduler.add_job(
+        job,
+        CronTrigger(hour=int(hour), minute=int(minute), timezone="UTC"),
+        id="daily_ingestion",
+        misfire_grace_time=3600,  # still run if missed by up to 1 hour
+        coalesce=True,            # skip duplicate runs if scheduler was paused
+        max_instances=1,
+    )
+    scheduler.start()
+    logger.info(f"Scheduler running — next run at {SCHEDULE_TIME} UTC")
 
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
+    try:
+        while True:
+            await asyncio.sleep(60)
+    except (KeyboardInterrupt, SystemExit):
+        scheduler.shutdown()
+        logger.info("Scheduler stopped")
+
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

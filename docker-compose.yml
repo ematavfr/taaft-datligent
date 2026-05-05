@@ -21,11 +21,11 @@ services:
     build: ./dbupdater
     container_name: taaft-dbupdater
     volumes:
-      - ./dbupdater:/app
       - ./updates:/app/updates
       - ./processed:/app/processed
     environment:
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-taaft}
+      RETENTION_DAYS: ${RETENTION_DAYS:-90}
     depends_on:
       db:
         condition: service_healthy
@@ -36,6 +36,7 @@ services:
     container_name: taaft-backend
     environment:
       DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-taaft}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3002}
     ports:
       - "8002:8000"
     depends_on:
@@ -64,8 +65,9 @@ services:
       NOTION_TOKEN: ${NOTION_TOKEN}
       NOTION_DATABASE_ID: ${NOTION_DATABASE_ID}
       DB_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/${DB_NAME:-taaft}
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+      SCHEDULE_TIME: ${SCHEDULE_TIME:-08:30}
     volumes:
-      - ./updates:/app/updates
       - ./ingestion:/app
     depends_on:
       db:

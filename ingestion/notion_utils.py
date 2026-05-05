@@ -1,8 +1,6 @@
 import requests
 import json
-import logging
-
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 class NotionSync:
     def __init__(self, token):

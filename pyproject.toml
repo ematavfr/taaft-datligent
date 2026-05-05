@@ -1,0 +1,17 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "E402",   # module level import not at top (env-conditional imports)
+    "F401",   # imported but unused (re-exports)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"ingestion/tests/*" = ["E402", "F811"]
+
+[tool.pytest.ini_options]
+testpaths = ["ingestion/tests"]

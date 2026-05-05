@@ -44,3 +44,15 @@ renew-vault-token.sh
 *.swo
 .DS_Store
 
+# Debug/exploration scripts (not part of test suite)
+ingestion/check_*.py
+ingestion/save_debug*.py
+
+# Temporary HTML debug files
+ingestion/debug_*.html
+ingestion/latest_*.html
+latest_taaft.html
+
+# Scratch workspace
+scratch/
+
