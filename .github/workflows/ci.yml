@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ruff
+        run: pip install ruff==0.4.4
+
+      - name: Run ruff
+        # Exclude old scratch files not yet cleaned up
+        run: |
+          ruff check \
+            ingestion/db_writer.py \
+            ingestion/email_client.py \
+            ingestion/enrichment.py \
+            ingestion/html_parser.py \
+            ingestion/ingest_taaft.py \
+            ingestion/monitoring.py \
+            ingestion/notion_utils.py \
+            ingestion/scheduler.py \
+            ingestion/scraper.py \
+            ingestion/tests/ \
+            backend/ \
+            dbupdater/
+
+  test:
+    name: Pipeline tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: |
+          pip install \
+            pytest==8.3.4 \
+            beautifulsoup4==4.12.3 \
+            httpx==0.28.1 \
+            loguru==0.7.2
+
+      - name: Run tests
+        run: pytest ingestion/tests/ -v --tb=short
+
+  qa:
+    name: API QA (live stack)
+    runs-on: ubuntu-latest
+    # Only run when the full stack can be started (not on forks)
+    if: github.event_name == 'push' && github.repository_owner == 'ematavfr'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install QA dependencies
+        run: pip install httpx==0.28.1
+
+      - name: Start stack
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_PASS: ${{ secrets.GMAIL_PASS }}
+        run: |
+          docker compose up -d db backend
+          # Wait for backend to be healthy
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:8002/health && break
+            sleep 2
+          done
+
+      - name: Run API QA
+        run: python scripts/qa_api.py --url http://localhost:8002
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

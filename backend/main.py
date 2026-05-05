@@ -1,5 +1,6 @@
 import os
 from contextlib import asynccontextmanager
+from datetime import date
 from typing import AsyncGenerator, List, Optional
 
 import asyncpg
@@ -8,7 +9,6 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from pydantic import BaseModel
-from datetime import date
 
 load_dotenv()
 

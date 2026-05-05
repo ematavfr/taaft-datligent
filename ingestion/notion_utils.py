@@ -1,6 +1,8 @@
-import requests
 import json
+
+import requests
 from loguru import logger
+
 
 class NotionSync:
     def __init__(self, token):
@@ -14,10 +16,10 @@ class NotionSync:
     def create_prompt_page(self, database_id, title, notion_link, description_fr, description_en, tags, publication_date):
         """Creates a new page in the Notion database for a 'Prompt of the Day'."""
         endpoint = "https://api.notion.com/v1/pages"
-        
+
         # Prepare multi-select tags
         notion_tags = [{"name": tag} for tag in tags]
-        
+
         data = {
             "parent": {"database_id": database_id},
             "properties": {
@@ -50,7 +52,7 @@ class NotionSync:
                 }
             }
         }
-        
+
         try:
             response = requests.post(endpoint, headers=self.headers, json=data)
             if response.status_code == 200:

@@ -3,16 +3,15 @@ import datetime
 import os
 import sys
 
-from dotenv import load_dotenv
-from loguru import logger
-
 from db_writer import write_to_db
+from dotenv import load_dotenv
 from email_client import connect_gmail, extract_html, get_newsletter_by_date
 from enrichment import enrich_items
-from scraper import scrape_items
 from html_parser import parse_taaft_html
+from loguru import logger
 from monitoring import ensure_monitoring_table, record_ingestion_run, send_alert
 from notion_utils import NotionSync
+from scraper import scrape_items
 
 if os.path.exists(".env"):
     load_dotenv(".env")
